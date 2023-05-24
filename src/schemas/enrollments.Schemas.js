@@ -1,8 +1,7 @@
 import joi from "joi";
 
 export const createEnrollmentSchema = joi.object({
-    studentId: joi.number().required(),
     classId: joi.number().required(),
-    enrollmentDate: joi.date().required(),
+    enrollmentDate: joi.date(),
     exitDate: joi.date(),
 });
