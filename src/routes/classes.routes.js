@@ -1,10 +1,8 @@
 import { Router } from "express";
-import { validateSchema } from "../middlewares/validateSchema.middlewares.js";
-import { enrollStudent } from "../controllers/enrollments.controller.js";
-import { createEnrollmentSchema } from "../schemas/enrollments.Schemas.js";
+import { getClasses } from "../controllers/classes.controller.js";
 
-const enrollmentsRouter = Router();
+const classesRouter = Router();
 
-enrollmentsRouter.post("/students/:studentId/enrollments", validateSchema(createEnrollmentSchema), enrollStudent)
+classesRouter.get("/classes", getClasses);
 
-export default enrollmentsRouter;
+export default classesRouter;
