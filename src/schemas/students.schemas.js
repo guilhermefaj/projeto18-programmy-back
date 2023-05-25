@@ -8,4 +8,5 @@ export const createStudentSchema = joi.object({
         'string.max': 'O CPF deve ter exatamente 11 dígitos',
     }),
     email: joi.string().email().required(),
+    classId: joi.number().required()
 });

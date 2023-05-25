@@ -6,7 +6,7 @@ import { classValidationByBody, classValidationByParams, studentValidation } fro
 
 const studentsRouter = Router();
 
-studentsRouter.post("/students/register", validateSchema(createStudentSchema), studentValidation, classValidationByBody, createStudent)
+studentsRouter.post("/students/register", validateSchema(createStudentSchema), classValidationByBody, createStudent)
 studentsRouter.get("/students/:classId", classValidationByParams, getStudentsByClass)
 
 export default studentsRouter;
