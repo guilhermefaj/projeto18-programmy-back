@@ -55,3 +55,50 @@ export async function showProjectsByClassId(req, res) {
     }
 }
 
+export async function showProject(req, res) {
+    const { id } = req.params;
+
+    try {
+        const projectResult = await db.query(
+            'SELECT * FROM projects WHERE id = $1',
+            [id]
+        );
+
+        const project = projectResult.rows[0];
+
+        if (!project) {
+            return res.status(404).send('Projeto não encontrado');
+        }
+
+        res.status(200).send(project);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Erro ao obter o projeto');
+    }
+}
+
+export async function getGradesByProject(req, res) {
+    try {
+        const { projectId } = req.params;
+
+        console.log("projectId:", projectId)
+
+        const gradesResult = await db.query(
+            `
+            SELECT students.name, grade."grades"
+            FROM students
+            INNER JOIN submissions ON students.id = submissions."studentId"
+            INNER JOIN grade ON submissions."gradeId" = grade.id
+            WHERE submissions."projectId" = $1
+            `, [projectId]
+        );
+        const grades = gradesResult.rows;
+
+        res.status(200).send(grades);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Erro ao obter as notas do projeto');
+    }
+}
+
+
