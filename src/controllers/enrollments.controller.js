@@ -1,5 +1,3 @@
-import { db } from "../database/database.connection.js";
-
 export async function enrollStudent(req, res) {
     try {
         const { studentId } = req.params;
@@ -7,19 +5,27 @@ export async function enrollStudent(req, res) {
 
         const enrollmentResult = await db.query(
             `
-            INSERT INTO enrollments 
-            ("studentId", "classId", "enrollmentDate")
-            VALUES ($1, $2, CURRENT_DATE)
-            ON CONFLICT ("studentId")
-            DO UPDATE SET "classId" = EXCLUDED."classId"
-            RETURNING *
-            `,
-            [studentId, classId]);
+        INSERT INTO enrollments 
+        ("studentId", "classId", "enrollmentDate")
+        VALUES ($1, $2, CURRENT_DATE)
+        RETURNING *
+        `,
+            [studentId, classId]
+        );
 
         const enrollment = enrollmentResult.rows[0];
 
         const formattedEnrollmentDate = enrollment.enrollmentDate.toISOString().split('T')[0];
         enrollment.enrollmentDate = formattedEnrollmentDate;
+
+        await db.query(
+            `
+        UPDATE students
+        SET "classId" = $1
+        WHERE id = $2
+        `,
+            [classId, studentId]
+        );
 
         res.status(201).send(enrollment);
     } catch (error) {

@@ -5,6 +5,6 @@ import { createEnrollmentSchema } from "../schemas/enrollments.Schemas.js";
 
 const enrollmentsRouter = Router();
 
-enrollmentsRouter.post("/students/:studentId/enrollments", validateSchema(createEnrollmentSchema), enrollStudent)
+enrollmentsRouter.post("/students/:studentId/enrollments", validateSchema(createEnrollmentSchema), enrollStudent);
 
 export default enrollmentsRouter;

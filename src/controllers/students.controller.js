@@ -37,23 +37,101 @@ export async function createStudent(req, res) {
 
 
 
-export async function getStudentsByClass(req, res) {
+export async function showStudentsByClass(req, res) {
     try {
         const { classId } = req.params;
 
-        const getStudentsResult = await db.query(
+        const studentsResult = await db.query(
             `
             SELECT students.*
             FROM students
-            INNER JOIN enrollments 
-            ON students.id = enrollments."studentId"
+            INNER JOIN enrollments ON students.id = enrollments."studentId"
             WHERE enrollments."classId" = $1
-            `, [classId]);
+            `, [classId]
+        );
 
-        const students = getStudentsResult.rows;
+        const students = studentsResult.rows;
+
+        const enrolledClasses = await Promise.all(
+            students.map(async (student) => {
+                const classesResult = await db.query(
+                    `
+                SELECT classes.*
+                FROM classes
+                INNER JOIN enrollments ON classes.id = enrollments."classId"
+                WHERE enrollments."studentId" = $1
+                `, [student.id]
+                );
+                const classes = classesResult.rows;
+                return { ...student, classes };
+            })
+        );
+
+        res.status(200).send(enrolledClasses);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Erro ao obter os estudantes por turma');
+    }
+}
+
+
+export async function getStudent(req, res) {
+    try {
+        const { studentId } = req.params;
+
+        const studentResult = await db.query(
+            `SELECT students.*, array_agg(enrollments."classId") as "classIds"
+            FROM students
+            LEFT JOIN enrollments ON students.id = enrollments."studentId"
+            WHERE students.id = $1
+            GROUP BY students.id;`,
+            [studentId]
+        );
+
+        const student = studentResult.rows[0];
+        if (!student) {
+            return res.status(404).send('Estudante não encontrado');
+        }
+
+        res.status(200).send(student);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Erro ao obter informações do estudante');
+    }
+}
+
+export async function showStudents(req, res) {
+    try {
+        const studentsResult = await db.query('SELECT * FROM students');
+        const students = studentsResult.rows;
 
         res.status(200).send(students);
     } catch (error) {
-        restart.status(500).send('Erro ao selecionar alunos')
+        console.error(error);
+        res.status(500).send('Erro ao obter os estudantes');
     }
 }
+
+export async function studentsByClass(req, res) {
+    try {
+        const { classId } = req.params;
+
+        const studentsResult = await db.query(
+            `
+            SELECT name
+            FROM students
+            WHERE "classId" = $1
+            `,
+            [classId]
+        );
+
+        const students = studentsResult.rows.map((row) => row.name);
+
+        res.status(200).send(students);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Erro ao obter os estudantes por turma");
+    }
+}
+
+
