@@ -38,29 +38,34 @@ export async function createStudent(req, res) {
 
 
 export async function showStudentsByClass(req, res) {
+    let client;
     try {
         const { classId } = req.params;
 
-        const studentsResult = await db.query(
+        client = await db.connect();
+
+        const studentsResult = await client.query(
             `
-            SELECT students.*
-            FROM students
-            INNER JOIN enrollments ON students.id = enrollments."studentId"
-            WHERE enrollments."classId" = $1
-            `, [classId]
+        SELECT students.*
+        FROM students
+        INNER JOIN enrollments ON students.id = enrollments."studentId"
+        WHERE enrollments."classId" = $1
+        `,
+            [classId]
         );
 
         const students = studentsResult.rows;
 
         const enrolledClasses = await Promise.all(
             students.map(async (student) => {
-                const classesResult = await db.query(
+                const classesResult = await client.query(
                     `
-                SELECT classes.*
-                FROM classes
-                INNER JOIN enrollments ON classes.id = enrollments."classId"
-                WHERE enrollments."studentId" = $1
-                `, [student.id]
+            SELECT classes.*
+            FROM classes
+            INNER JOIN enrollments ON classes.id = enrollments."classId"
+            WHERE enrollments."studentId" = $1
+            `,
+                    [student.id]
                 );
                 const classes = classesResult.rows;
                 return { ...student, classes };
@@ -70,9 +75,14 @@ export async function showStudentsByClass(req, res) {
         res.status(200).send(enrolledClasses);
     } catch (error) {
         console.error(error);
-        res.status(500).send('Erro ao obter os estudantes por turma');
+        res.status(500).send("Erro ao obter os estudantes por turma");
+    } finally {
+        if (client) {
+            client.release();
+        }
     }
 }
+
 
 
 export async function getStudent(req, res) {
@@ -118,13 +128,14 @@ export async function studentsByClass(req, res) {
 
         const studentsResult = await db.query(
             `
-            SELECT name
+            SELECT students.*
             FROM students
             WHERE "classId" = $1
             `,
             [classId]
         );
 
+        console.log("resultado", studentsResult)
         const students = studentsResult.rows.map((row) => row.name);
 
         res.status(200).send(students);
@@ -133,5 +144,3 @@ export async function studentsByClass(req, res) {
         res.status(500).send("Erro ao obter os estudantes por turma");
     }
 }
-
-

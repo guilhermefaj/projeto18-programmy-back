@@ -7,7 +7,7 @@ export async function getClasses(req, res) {
         const classes = getClassesResult.rows.map((classe) => ({
             ...classe,
             startDate: classe.startDate.toISOString().split('T')[0],
-            endDate: classe.endDate.toISOString().split('T')[0]
+            endDate: classe.endDate ? classe.endDate.toISOString().split('T')[0] : ''
         }));
 
         res.status(200).send(classes);
@@ -16,6 +16,7 @@ export async function getClasses(req, res) {
         res.status(500).send('Erro ao obter informações das classes');
     }
 };
+
 
 export async function getClassesByStudent(req, res) {
     try {
@@ -32,10 +33,10 @@ export async function getClassesByStudent(req, res) {
         );
 
         const classes = classesResult.rows;
-
+        console.log(classes)
         classes.forEach((classItem) => {
             classItem.startDate = classItem.startDate.toISOString().split('T')[0];
-            classItem.endDate = classItem.endDate.toISOString().split('T')[0];
+            classItem.endDate = classItem.endDate ? classItem.endDate.toISOString().split('T')[0] : null;
         });
 
         res.status(200).send(classes);
