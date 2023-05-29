@@ -39,16 +39,14 @@ export async function showProjectsByClassId(req, res) {
 
         const projectsResult = await db.query(
             `
-            SELECT "projectName"
+            SELECT *
             FROM projects
             WHERE "classId" = $1
             `,
             [classId]
         );
 
-        const projects = projectsResult.rows.map((row) => row.projectName);
-
-        res.status(200).send(projects);
+        res.status(200).send(projectsResult.rows);
     } catch (error) {
         console.error(error);
         res.status(500).send('Erro ao obter os projetos');
